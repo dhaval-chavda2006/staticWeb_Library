@@ -1,0 +1,27 @@
+name: Deploy to S3
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write   # This allows the "handshake" with AWS
+  contents: read    # This allows the robot to read your code
+
+jobs:
+  s3-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::677974454076:role/GitHubActions-S3-Deploy
+          aws-region: ap-south-1
+          role-session-name: GitHubActionsSession
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync . s3://dhaval-static-library --delete --exclude ".git/*" --exclude ".github/*"
